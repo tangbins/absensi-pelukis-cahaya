@@ -1,55 +1,142 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Absensi</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <style>
-      body {
-        font-family: "Poppins", sans-serif;
-        background: linear-gradient(135deg, #1e3c72, #2a5298);
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absensi Pameran</title>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      backdrop-filter: blur(15px);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      animation: fadeIn 1s ease;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .event {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 20px;
+    }
+
+    .success {
+      font-size: 18px;
+      margin: 15px 0;
+      color: #00ffcc;
+    }
+
+    .nama {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .angkatan {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .time {
+      margin-top: 15px;
+      font-size: 13px;
+      opacity: 0.7;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
       }
-      .box {
-        background: white;
-        color: black;
-        padding: 20px;
-        margin: 20px;
-        border-radius: 15px;
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
-      .card {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 30px;
-        border-radius: 20px;
-        backdrop-filter: blur(10px);
-        text-align: center;
+    }
+
+    .loading {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>📷 Pelukis Cahaya</h1>
+    <p class="event">Pameran Foto • 10–12 April 2026</p>
+
+    <p class="success">⏳ Memproses absensi...</p>
+
+    <div id="result" style="display:none;">
+      <p class="success">✅ Absensi berhasil!</p>
+      <p class="nama" id="nama"></p>
+      <p class="angkatan" id="angkatan"></p>
+      <p class="time" id="time"></p>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbz-H4mY4prFt04gdV_yacrbWs8JtsJYFBJ3el3n6EDBPmgx2oMvlj7IVpeULwjQJcOA/exec";
+
+    const params = new URLSearchParams(window.location.search);
+    const nama = params.get("nama");
+    const angkatan = params.get("angkatan");
+
+    async function kirimAbsensi() {
+      if (!nama || !angkatan) {
+        document.querySelector(".success").innerText = "❌ Data tidak valid";
+        return;
       }
-    </style>
-  </head>
 
-  <body>
-    <h2>📷 Absensi Sedang Diproses...</h2>
+      try {
+        await fetch(`${API_URL}?nama=${nama}&angkatan=${angkatan}`);
 
-    <div class="box" id="result">Loading...</div>
+        document.querySelector(".success").style.display = "none";
+        document.getElementById("result").style.display = "block";
 
-    <script>
-      const params = new URLSearchParams(window.location.search);
-      const nama = params.get("nama");
-      const angkatan = params.get("angkatan");
+        document.getElementById("nama").innerText = nama;
+        document.getElementById("angkatan").innerText = "Angkatan " + angkatan;
 
-      const url =
-        "https://script.google.com/macros/s/AKfycbz-H4mY4prFt04gdV_yacrbWs8JtsJYFBJ3el3n6EDBPmgx2oMvlj7IVpeULwjQJcOA/exec";
+        const now = new Date();
+        document.getElementById("time").innerText =
+          "Waktu: " + now.toLocaleString();
 
-      fetch(`${url}?nama=${nama}&angkatan=${angkatan}`).then(() => {
-        document.getElementById("result").innerHTML = `
-          <h2>✅ Absensi Berhasil!</h2>
-          <p><b>Nama:</b> ${nama}</p>
-          <p><b>Angkatan:</b> ${angkatan}</p>
-        `;
-      });
-    </script>
-  </body>
+      } catch (error) {
+        document.querySelector(".success").innerText = "❌ Gagal mengirim absensi";
+      }
+    }
+
+    kirimAbsensi();
+  </script>
+
+</body>
 </html>
