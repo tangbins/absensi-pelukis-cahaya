@@ -1,119 +1,75 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Absensi Pameran</title>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absensi Pelukis Cahaya</title>
 
-    <!-- Font -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
-      rel="stylesheet"
-    />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: "Poppins", sans-serif;
-      }
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+    }
 
-      body {
-        height: 100vh;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: white;
-      }
+    .card {
+      background: rgba(255,255,255,0.1);
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      width: 90%;
+      max-width: 400px;
+    }
 
-      .card {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 30px;
-        border-radius: 20px;
-        backdrop-filter: blur(15px);
-        text-align: center;
-        width: 90%;
-        max-width: 400px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        animation: fadeIn 1s ease;
-      }
+    h1 {
+      margin-bottom: 10px;
+    }
 
-      h1 {
-        font-size: 22px;
-        margin-bottom: 10px;
-      }
+    .status {
+      margin-top: 20px;
+      font-size: 18px;
+    }
 
-      .event {
-        font-size: 14px;
-        opacity: 0.8;
-        margin-bottom: 20px;
-      }
+  </style>
+</head>
+<body>
 
-      .success {
-        font-size: 18px;
-        margin: 15px 0;
-        color: #00ffcc;
-      }
+<div class="card">
+  <h1>📷 Pelukis Cahaya</h1>
+  <p>Pameran Foto 10–12 April 2026</p>
 
-      .nama {
-        font-size: 20px;
-        font-weight: 600;
-      }
+  <div class="status" id="status">
+    ⏳ Memproses absensi...
+  </div>
+</div>
 
-      .angkatan {
-        font-size: 14px;
-        opacity: 0.8;
-      }
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbxLI2ihMfRewUQDgwqVE-6aMBLYLbQv6i5N5y7bC5SajqSjHPzt8UJUqbZ8a-OBP_A6/exec";
 
-      .time {
-        margin-top: 15px;
-        font-size: 13px;
-        opacity: 0.7;
-      }
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
 
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
+  if (!token) {
+    document.getElementById("status").innerText = "❌ Token tidak ditemukan";
+  } else {
+    fetch(API_URL + "?token=" + token)
+      .then(res => res.text())
+      .then(res => {
+        document.getElementById("status").innerText = res;
+      })
+      .catch(() => {
+        document.getElementById("status").innerText = "❌ Gagal koneksi ke server";
+      });
+  }
+</script>
 
-      .loading {
-        font-size: 14px;
-        opacity: 0.8;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <h1>📷 Pelukis Cahaya</h1>
-      <p class="event">Pameran Foto • 10–12 April 2026</p>
-
-      <p class="success">⏳ Memproses absensi...</p>
-
-      <div id="result" style="display: none">
-        <p class="success">✅ Absensi berhasil!</p>
-        <p class="nama" id="nama"></p>
-        <p class="angkatan" id="angkatan"></p>
-        <p class="time" id="time"></p>
-      </div>
-    </div>
-
-    <script>
-      const params = new URLSearchParams(window.location.search);
-const token = params.get("token");
-
-fetch(`API_URL?token=${token}`)
-  .then(res => res.text())
-  .then(res => {
-    document.body.innerHTML = "<h2>" + res + "</h2>";
-  });
-    </script>
-  </body>
+</body>
 </html>
