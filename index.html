@@ -1,47 +1,55 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <title>Absensi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background: linear-gradient(135deg, #4facfe, #00f2fe);
-      color: white;
-      padding-top: 50px;
-    }
-    .box {
-      background: white;
-      color: black;
-      padding: 20px;
-      margin: 20px;
-      border-radius: 15px;
-    }
-  </style>
-</head>
+  <head>
+    <title>Absensi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .box {
+        background: white;
+        color: black;
+        padding: 20px;
+        margin: 20px;
+        border-radius: 15px;
+      }
+      .card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 30px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        text-align: center;
+      }
+    </style>
+  </head>
 
-<body>
-  <h2>📷 Absensi Sedang Diproses...</h2>
+  <body>
+    <h2>📷 Absensi Sedang Diproses...</h2>
 
-  <div class="box" id="result">Loading...</div>
+    <div class="box" id="result">Loading...</div>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const nama = params.get("nama");
-    const angkatan = params.get("angkatan");
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const nama = params.get("nama");
+      const angkatan = params.get("angkatan");
 
-    const url = "https://script.google.com/macros/s/AKfycbz-H4mY4prFt04gdV_yacrbWs8JtsJYFBJ3el3n6EDBPmgx2oMvlj7IVpeULwjQJcOA/exec";
+      const url =
+        "https://script.google.com/macros/s/AKfycbz-H4mY4prFt04gdV_yacrbWs8JtsJYFBJ3el3n6EDBPmgx2oMvlj7IVpeULwjQJcOA/exec";
 
-    fetch(`${url}?nama=${nama}&angkatan=${angkatan}`)
-      .then(() => {
+      fetch(`${url}?nama=${nama}&angkatan=${angkatan}`).then(() => {
         document.getElementById("result").innerHTML = `
           <h2>✅ Absensi Berhasil!</h2>
           <p><b>Nama:</b> ${nama}</p>
           <p><b>Angkatan:</b> ${angkatan}</p>
         `;
       });
-  </script>
-
-</body>
+    </script>
+  </body>
 </html>
