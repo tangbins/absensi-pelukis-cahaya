@@ -52,23 +52,24 @@
 </div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbzgMWd7gcZDSjSREXhXHtDuW1xKky74_7oGyJzMheV8hQfEXAyJM4VWfifMKmSBhvog/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbwzBiQn6PfBThdRqERxJSDdZSefRYcjkRaT0nIvhin5OxFjxd5du667hVeC_wNalO2L/exec";
 
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
+const params = new URLSearchParams(window.location.search);
+const token = params.get("token");
 
-  if (!token) {
-    document.getElementById("status").innerText = "❌ Token tidak ditemukan";
-  } else {
-    fetch(API_URL + "?token=" + token)
-      .then(res => res.text())
-      .then(res => {
-        document.getElementById("status").innerText = res;
-      })
-      .catch(() => {
-        document.getElementById("status").innerText = "❌ Gagal koneksi ke server";
-      });
-  }
+if (!token) {
+  document.getElementById("status").innerText = "❌ Token tidak ditemukan";
+} else {
+  fetch(`${API_URL}?token=${token}`)
+    .then(res => res.text())
+    .then(data => {
+      document.getElementById("status").innerText = data;
+    })
+    .catch(err => {
+      console.error(err);
+      document.getElementById("status").innerText = "❌ Gagal koneksi ke server";
+    });
+}
 </script>
 
 </body>
