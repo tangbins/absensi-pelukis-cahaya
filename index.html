@@ -1,142 +1,151 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Absensi Pameran</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Absensi Pameran</title>
 
-  <!-- Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    body {
-      height: 100vh;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 30px;
-      border-radius: 20px;
-      backdrop-filter: blur(15px);
-      text-align: center;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      animation: fadeIn 1s ease;
-    }
-
-    h1 {
-      font-size: 22px;
-      margin-bottom: 10px;
-    }
-
-    .event {
-      font-size: 14px;
-      opacity: 0.8;
-      margin-bottom: 20px;
-    }
-
-    .success {
-      font-size: 18px;
-      margin: 15px 0;
-      color: #00ffcc;
-    }
-
-    .nama {
-      font-size: 20px;
-      font-weight: 600;
-    }
-
-    .angkatan {
-      font-size: 14px;
-      opacity: 0.8;
-    }
-
-    .time {
-      margin-top: 15px;
-      font-size: 13px;
-      opacity: 0.7;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
       }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+
+      body {
+        height: 100vh;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
       }
-    }
 
-    .loading {
-      font-size: 14px;
-      opacity: 0.8;
-    }
+      .card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 30px;
+        border-radius: 20px;
+        backdrop-filter: blur(15px);
+        text-align: center;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        animation: fadeIn 1s ease;
+      }
 
-  </style>
-</head>
-<body>
+      h1 {
+        font-size: 22px;
+        margin-bottom: 10px;
+      }
 
-  <div class="card">
-    <h1>📷 Pelukis Cahaya</h1>
-    <p class="event">Pameran Foto • 10–12 April 2026</p>
+      .event {
+        font-size: 14px;
+        opacity: 0.8;
+        margin-bottom: 20px;
+      }
 
-    <p class="success">⏳ Memproses absensi...</p>
+      .success {
+        font-size: 18px;
+        margin: 15px 0;
+        color: #00ffcc;
+      }
 
-    <div id="result" style="display:none;">
-      <p class="success">✅ Absensi berhasil!</p>
-      <p class="nama" id="nama"></p>
-      <p class="angkatan" id="angkatan"></p>
-      <p class="time" id="time"></p>
+      .nama {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .angkatan {
+        font-size: 14px;
+        opacity: 0.8;
+      }
+
+      .time {
+        margin-top: 15px;
+        font-size: 13px;
+        opacity: 0.7;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .loading {
+        font-size: 14px;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>📷 Pelukis Cahaya</h1>
+      <p class="event">Pameran Foto • 10–12 April 2026</p>
+
+      <p class="success">⏳ Memproses absensi...</p>
+
+      <div id="result" style="display: none">
+        <p class="success">✅ Absensi berhasil!</p>
+        <p class="nama" id="nama"></p>
+        <p class="angkatan" id="angkatan"></p>
+        <p class="time" id="time"></p>
+      </div>
     </div>
-  </div>
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz-H4mY4prFt04gdV_yacrbWs8JtsJYFBJ3el3n6EDBPmgx2oMvlj7IVpeULwjQJcOA/exec";
+    <script>
+      const key = params.get("key");
 
-    const params = new URLSearchParams(window.location.search);
-    const nama = params.get("nama");
-    const angkatan = params.get("angkatan");
-
-    async function kirimAbsensi() {
-      if (!nama || !angkatan) {
-        document.querySelector(".success").innerText = "❌ Data tidak valid";
-        return;
+      if (key !== "RAHASIA123") {
+        document.body.innerHTML = "❌ Akses ditolak";
+        throw new Error("Unauthorized");
       }
 
-      try {
-        await fetch(`${API_URL}?nama=${nama}&angkatan=${angkatan}`);
+      const API_URL =
+        "https://script.google.com/macros/s/AKfycbz-H4mY4prFt04gdV_yacrbWs8JtsJYFBJ3el3n6EDBPmgx2oMvlj7IVpeULwjQJcOA/exec";
 
-        document.querySelector(".success").style.display = "none";
-        document.getElementById("result").style.display = "block";
+      const params = new URLSearchParams(window.location.search);
+      const nama = params.get("nama");
+      const angkatan = params.get("angkatan");
 
-        document.getElementById("nama").innerText = nama;
-        document.getElementById("angkatan").innerText = "Angkatan " + angkatan;
+      async function kirimAbsensi() {
+        if (!nama || !angkatan) {
+          document.querySelector(".success").innerText = "❌ Data tidak valid";
+          return;
+        }
 
-        const now = new Date();
-        document.getElementById("time").innerText =
-          "Waktu: " + now.toLocaleString();
+        try {
+          await fetch(`${API_URL}?nama=${nama}&angkatan=${angkatan}`);
 
-      } catch (error) {
-        document.querySelector(".success").innerText = "❌ Gagal mengirim absensi";
+          document.querySelector(".success").style.display = "none";
+          document.getElementById("result").style.display = "block";
+
+          document.getElementById("nama").innerText = nama;
+          document.getElementById("angkatan").innerText =
+            "Angkatan " + angkatan;
+
+          const now = new Date();
+          document.getElementById("time").innerText =
+            "Waktu: " + now.toLocaleString();
+        } catch (error) {
+          document.querySelector(".success").innerText =
+            "❌ Gagal mengirim absensi";
+        }
       }
-    }
 
-    kirimAbsensi();
-  </script>
-
-</body>
+      kirimAbsensi();
+    </script>
+  </body>
 </html>
