@@ -106,46 +106,14 @@
     </div>
 
     <script>
-      const key = params.get("key");
-
-      if (key !== "RAHASIA123") {
-        document.body.innerHTML = "❌ Akses ditolak";
-        throw new Error("Unauthorized");
-      }
-
-      const API_URL =
-        "https://script.google.com/macros/s/AKfycbz-H4mY4prFt04gdV_yacrbWs8JtsJYFBJ3el3n6EDBPmgx2oMvlj7IVpeULwjQJcOA/exec";
-
       const params = new URLSearchParams(window.location.search);
-      const nama = params.get("nama");
-      const angkatan = params.get("angkatan");
+const token = params.get("token");
 
-      async function kirimAbsensi() {
-        if (!nama || !angkatan) {
-          document.querySelector(".success").innerText = "❌ Data tidak valid";
-          return;
-        }
-
-        try {
-          await fetch(`${API_URL}?nama=${nama}&angkatan=${angkatan}`);
-
-          document.querySelector(".success").style.display = "none";
-          document.getElementById("result").style.display = "block";
-
-          document.getElementById("nama").innerText = nama;
-          document.getElementById("angkatan").innerText =
-            "Angkatan " + angkatan;
-
-          const now = new Date();
-          document.getElementById("time").innerText =
-            "Waktu: " + now.toLocaleString();
-        } catch (error) {
-          document.querySelector(".success").innerText =
-            "❌ Gagal mengirim absensi";
-        }
-      }
-
-      kirimAbsensi();
+fetch(`API_URL?token=${token}`)
+  .then(res => res.text())
+  .then(res => {
+    document.body.innerHTML = "<h2>" + res + "</h2>";
+  });
     </script>
   </body>
 </html>

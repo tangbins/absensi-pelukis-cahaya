@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Absensi Pelukis Cahaya 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #1a1a2e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --bg: #f5f5f7;
+    --surface: #ffffff;
+    --border: #e0e0e0;
+    --text: #1a1a2e;
+    --text-muted: #6b7280;
+    --success: #16a34a;
+    --success-bg: #dcfce7;
+    --warning: #d97706;
+    --warning-bg: #fef3c7;
+    --danger: #dc2626;
+    --danger-bg: #fee2e2;
+    --info: #2563eb;
+    --info-bg: #dbeafe;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .app-header {
+    background: var(--primary);
+    color: white;
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .app-header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+  .app-header p { font-size: 12px; opacity: 0.65; margin-top: 2px; }
+  .badge-open { background: #16a34a; color: white; font-size: 11px; padding: 4px 12px; border-radius: 99px; font-weight: 500; white-space: nowrap; }
+  .badge-closed { background: #dc2626; color: white; font-size: 11px; padding: 4px 12px; border-radius: 99px; font-weight: 500; white-space: nowrap; }
+
+  /* TABS */
+  .tab-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    overflow-x: auto;
+  }
+  .tab-bar button {
+    flex: 1;
+    min-width: 100px;
+    padding: 14px 12px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab-bar button.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-bar button:hover:not(.active) { background: var(--bg); }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-inner { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+  /* DATE CHIPS */
+  .date-chips { display: flex; gap: 8px; margin-bottom: 1.2rem; flex-wrap: wrap; }
+  .chip {
+    padding: 6px 16px;
+    border-radius: 99px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .card-body { padding: 1.2rem; }
+
+  /* STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 1.2rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .stat-num { font-size: 26px; font-weight: 700; }
+  .stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: 500; }
+
+  /* SCAN */
+  .scan-area {
+    background: #000;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 1rem;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #video { width: 100%; display: block; max-height: 300px; object-fit: cover; }
+  .scan-placeholder {
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 2rem;
+  }
+  .scan-placeholder svg { margin-bottom: 12px; }
+  .scan-placeholder p { font-size: 13px; }
+  .scan-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 160px;
+    height: 160px;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-radius: 12px;
+    pointer-events: none;
+  }
+  .scan-overlay::before, .scan-overlay::after {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-color: var(--accent);
+    border-style: solid;
+  }
+  .scan-overlay::before { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+  .scan-overlay::after { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+  .result-box {
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1.5px solid transparent;
+  }
+  .result-box.success { background: var(--success-bg); border-color: #86efac; }
+  .result-box.warning { background: var(--warning-bg); border-color: #fcd34d; }
+  .result-box.danger { background: var(--danger-bg); border-color: #fca5a5; }
+  .result-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .result-icon.s { background: var(--success); }
+  .result-icon.w { background: var(--warning); }
+  .result-icon.d { background: var(--danger); }
+  .result-name { font-size: 15px; font-weight: 600; }
+  .result-sub { font-size: 12px; color: var(--text-muted); }
+  .result-msg { font-size: 12px; margin-top: 2px; font-weight: 500; }
+  .result-msg.s { color: var(--success); }
+  .result-msg.w { color: var(--warning); }
+  .result-msg.d { color: var(--danger); }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { opacity: 0.9; background: var(--accent); }
+  .btn-success { background: var(--success); color: white; border-color: var(--success); }
+  .btn-success:hover { opacity: 0.9; background: var(--success); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 99px; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+
+  /* OVERRIDE PILLS */
+  .override-group { display: flex; gap: 6px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+  .override-group span { font-size: 12px; color: var(--text-muted); }
+  .ov-btn {
+    padding: 4px 12px;
+    border-radius: 99px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.12s;
+  }
+  .ov-btn:hover { background: var(--bg); }
+  .ov-btn.h { border-color: var(--success); color: var(--success); }
+  .ov-btn.i { border-color: var(--warning); color: var(--warning); }
+  .ov-btn.a { border-color: var(--danger); color: var(--danger); }
+
+  /* LIST */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 10px 0 6px;
+  }
+  .prow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    transition: background 0.1s;
+  }
+  .prow:last-child { border-bottom: none; }
+  .prow:hover { background: var(--bg); }
+  .prow-num { font-size: 12px; color: var(--text-muted); min-width: 22px; }
+  .prow-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .prow-id { font-size: 11px; color: var(--text-muted); }
+  .pill { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px; }
+  .pill-hadir { background: var(--success-bg); color: var(--success); }
+  .pill-izin { background: var(--warning-bg); color: var(--warning); }
+  .pill-alpha { background: var(--danger-bg); color: var(--danger); }
+  .pill-none { background: #f3f4f6; color: #9ca3af; }
+
+  /* SEARCH */
+  .search-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+    margin-bottom: 1rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+
+  /* QR CODES */
+  .qr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .qr-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    text-align: center;
+  }
+  .qr-card canvas { display: block; margin: 0 auto; }
+  .qr-name { font-size: 12px; font-weight: 600; color: var(--text); margin-top: 8px; line-height: 1.3; }
+  .qr-ang { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .qr-id { font-size: 10px; color: var(--text-muted); margin-top: 1px; font-family: monospace; }
+
+  /* LOCK NOTICE */
+  .lock-notice {
+    background: var(--danger-bg);
+    border: 1px solid #fca5a5;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--danger);
+    font-weight: 500;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* PRINT */
+  @media print {
+    .no-print { display: none !important; }
+    body { background: white; }
+    .app-header, .tab-bar { display: none; }
+    .qr-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .qr-card { border: 1px solid #ccc; break-inside: avoid; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .qr-grid { grid-template-columns: repeat(2, 1fr); }
+    .app-header h1 { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header no-print">
+  <div>
+    <h1>&#x1F4F7; Absensi Pelukis Cahaya</h1>
+    <p>17 – 19 April 2026 &nbsp;|&nbsp; 08.00 – 09.30 WIB</p>
+  </div>
+  <span id="main-badge" class="badge-closed">Tutup</span>
+</div>
+
+<!-- TABS -->
+<div class="tab-bar no-print">
+  <button class="active" onclick="showPage('scan', this)">&#x1F4F7; Scan QR</button>
+  <button onclick="showPage('list', this)">&#x1F4CB; Daftar Hadir</button>
+  <button onclick="showPage('qrcodes', this)">&#x1F4F1; QR Codes</button>
+</div>
+
+<!-- PAGE: SCAN -->
+<div id="page-scan" class="page active">
+  <div class="page-inner">
+    <div class="date-chips" id="scan-date-chips"></div>
+
+    <div id="lock-notice" class="lock-notice" style="display:none">
+      &#x26A0;&#xFE0F; Absensi hanya dibuka 08.00 – 09.30 WIB. Override manual tetap tersedia.
+    </div>
+
+    <div class="scan-area" id="scan-area">
+      <div class="scan-placeholder" id="scan-placeholder">
+        <svg width="48" height="48" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3" rx="0.5"/>
+          <rect x="19" y="14" width="2" height="7" rx="0.5"/><rect x="14" y="19" width="5" height="2" rx="0.5"/>
+        </svg>
+        <p>Kamera belum aktif</p>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="startCamera()">Aktifkan Kamera</button>
+      </div>
+      <video id="video" autoplay playsinline style="display:none"></video>
+      <canvas id="scan-canvas" style="display:none"></canvas>
+      <div class="scan-overlay" id="scan-overlay" style="display:none"></div>
+    </div>
+
+    <div id="last-result" style="display:none" class="result-box success">
+      <div class="result-icon s" id="res-icon">&#x2714;</div>
+      <div>
+        <div class="result-name" id="res-name"></div>
+        <div class="result-sub" id="res-sub"></div>
+        <div class="result-msg s" id="res-msg"></div>
+        <div class="override-group">
+          <span>Override:</span>
+          <button class="ov-btn h" id="ov-h" onclick="overrideStatus('hadir')">Hadir</button>
+          <button class="ov-btn i" id="ov-i" onclick="overrideStatus('izin')">Izin</button>
+          <button class="ov-btn a" id="ov-a" onclick="overrideStatus('alpha')">Alpha</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid" id="scan-stats"></div>
+  </div>
+</div>
+
+<!-- PAGE: LIST -->
+<div id="page-list" class="page">
+  <div class="page-inner">
+    <div class="date-chips" id="list-date-chips"></div>
+    <input class="search-input" type="text" id="list-search" placeholder="&#x1F50D; Cari nama pameris..." oninput="renderList()">
+    <div class="btn-row">
+      <button class="btn btn-success" onclick="exportExcel()">&#x1F4CA; Export Excel</button>
+      <button class="btn" onclick="exportExcelAll()">&#x1F4C2; Export Semua Tanggal</button>
+      <button class="btn" onclick="resetDay()">&#x21BA; Reset Hari Ini</button>
+    </div>
+    <div id="list-container"></div>
+    <div class="stats-grid" id="list-stats" style="margin-top:1rem"></div>
+  </div>
+</div>
+
+<!-- PAGE: QR CODES -->
+<div id="page-qrcodes" class="page">
+  <div class="page-inner">
+    <div class="btn-row no-print">
+      <button class="btn btn-primary" onclick="window.print()">&#x1F5A8; Cetak Semua QR</button>
+      <button class="btn" onclick="downloadAllQR()">&#x1F4E5; Download ZIP QR</button>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:1rem">
+      QR code unik per pameris. Panitia scan QR ini saat pameris datang.
+    </p>
+    <div class="qr-grid" id="qr-grid"></div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const PAMERIS = [
+  {id:"PC29-001",nama:"Anom Wisageni",angkatan:29},
+  {id:"PC29-002",nama:"Dhimas Dwi Prasetyo",angkatan:29},
+  {id:"PC29-003",nama:"Hanna Kulsum",angkatan:29},
+  {id:"PC29-004",nama:"Meta Herawati",angkatan:29},
+  {id:"PC29-005",nama:"Muhammad Ajriya Fadhullah",angkatan:29},
+  {id:"PC29-006",nama:"Muhammad Dharda Widad",angkatan:29},
+  {id:"PC29-007",nama:"Mutiara Dewi",angkatan:29},
+  {id:"PC29-008",nama:"Riska Yulianti",angkatan:29},
+  {id:"PC29-009",nama:"Salsabila",angkatan:29},
+  {id:"PC29-010",nama:"Sifka Adzan Muhafif",angkatan:29},
+  {id:"PC29-011",nama:"Siti Aulia Nur Zahraa",angkatan:29},
+  {id:"PC30-001",nama:"Adhitya Al Ghifari",angkatan:30},
+  {id:"PC30-002",nama:"Aufaa Nur Faizah",angkatan:30},
+  {id:"PC30-003",nama:"Azhika Naiyira Syahla Dhiya",angkatan:30},
+  {id:"PC30-004",nama:"Bintang Akbar Sutjipto",angkatan:30},
+  {id:"PC30-005",nama:"Fitri Octavia Ramadhani",angkatan:30},
+  {id:"PC30-006",nama:"Khadijah Yaafi'ah Nurul Izzah",angkatan:30},
+  {id:"PC30-007",nama:"Lutfia Bella Syahida",angkatan:30},
+  {id:"PC30-008",nama:"Muhammad Dzaki Alfan",angkatan:30},
+  {id:"PC30-009",nama:"Muhammad Ilham Wira Jatnika",angkatan:30},
+  {id:"PC30-010",nama:"Nabil Makariem",angkatan:30},
+  {id:"PC30-011",nama:"Nabila Nur Fauziah",angkatan:30},
+  {id:"PC30-012",nama:"Nurriska Meliyanti",angkatan:30},
+  {id:"PC30-013",nama:"Raddin Pratama Rachmat",angkatan:30},
+  {id:"PC30-014",nama:"Ridho Panca Gustafa",angkatan:30},
+  {id:"PC30-015",nama:"Siti Lienah Silaahul Hasanah",angkatan:30},
+  {id:"PC30-016",nama:"Sinfi Tania",angkatan:30},
+  {id:"PC30-017",nama:"Syifa Azkia Khoerunnisa",angkatan:30}
+];
+
+const DATES = ["2026-04-17","2026-04-18","2026-04-19"];
+const DATE_LABEL = {"2026-04-17":"17 Apr","2026-04-18":"18 Apr","2026-04-19":"19 Apr"};
+const DATE_FULL  = {"2026-04-17":"17 April 2026","2026-04-18":"18 April 2026","2026-04-19":"19 April 2026"};
+
+// ===================== STATE =====================
+let currentDate = DATES[0];
+let attendance  = {};
+let lastScannedId = null;
+let cameraStream = null;
+let scanActive   = false;
+
+// ===================== STORAGE =====================
+function loadData() {
+  DATES.forEach(d => {
+    try {
+      const raw = localStorage.getItem('pc_att_' + d);
+      if (raw) attendance[d] = JSON.parse(raw);
+      else {
+        attendance[d] = {};
+        PAMERIS.forEach(p => { attendance[d][p.id] = ""; });
+      }
+    } catch(e) {
+      attendance[d] = {};
+      PAMERIS.forEach(p => { attendance[d][p.id] = ""; });
+    }
+  });
+}
+
+function saveData(d) {
+  try { localStorage.setItem('pc_att_' + d, JSON.stringify(attendance[d])); } catch(e) {}
+}
+
+// ===================== TIME CHECK =====================
+function isWindowOpen() {
+  const now   = new Date();
+  const valid = [{y:2026,m:3,d:17},{y:2026,m:3,d:18},{y:2026,m:3,d:19}];
+  const ok    = valid.some(v => v.y===now.getFullYear() && v.m===now.getMonth() && v.d===now.getDate());
+  if (!ok) return false;
+  const mins  = now.getHours()*60 + now.getMinutes();
+  return mins >= 480 && mins <= 570;  // 08:00 - 09:30
+}
+
+function todayStr() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+}
+
+function updateBadge() {
+  const el  = document.getElementById('main-badge');
+  const open = isWindowOpen();
+  el.textContent   = open ? "Absensi Buka" : "Absensi Tutup";
+  el.className     = open ? "badge-open" : "badge-closed";
+  const lockNotice = document.getElementById('lock-notice');
+  if (lockNotice) lockNotice.style.display = (!open && currentDate === todayStr()) ? 'flex' : 'none';
+}
+
+// ===================== PAGE NAV =====================
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'qrcodes') renderQR();
+  if (name === 'list') renderList();
+  if (name === 'scan') { renderScanStats(); updateLockNotice(); }
+}
+
+function updateLockNotice() {
+  const open = isWindowOpen();
+  const lock = document.getElementById('lock-notice');
+  if (lock) lock.style.display = (!open && currentDate === todayStr()) ? 'flex' : 'none';
+}
+
+// ===================== DATE CHIPS =====================
+function buildChips(containerId, onChangeCb) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = DATES.map((d, i) =>
+    `<button class="chip${i===0?' active':''}" data-d="${d}" onclick="selectChip('${containerId}','${d}',this,${onChangeCb})">${DATE_LABEL[d]}</button>`
+  ).join('');
+}
+
+function selectChip(containerId, d, el, cb) {
+  document.querySelectorAll('#'+containerId+' .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentDate = d;
+  cb();
+}
+
+// ===================== CAMERA & SCAN =====================
+async function startCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    const video = document.getElementById('video');
+    video.srcObject = cameraStream;
+    document.getElementById('scan-placeholder').style.display = 'none';
+    video.style.display = 'block';
+    document.getElementById('scan-overlay').style.display = 'block';
+    scanActive = true;
+    requestAnimationFrame(scanTick);
+  } catch(e) {
+    alert('Kamera tidak bisa diakses.\n\nPastikan:\n1. Izin kamera sudah diberikan di browser\n2. Buka via HTTPS atau localhost\n\nError: ' + e.message);
+  }
+}
+
+function scanTick() {
+  if (!scanActive) return;
+  const video  = document.getElementById('video');
+  const canvas = document.getElementById('scan-canvas');
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    try {
+      const img  = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(img.data, img.width, img.height, {inversionAttempts:'dontInvert'});
+      if (code) {
+        handleScan(code.data);
+        setTimeout(() => requestAnimationFrame(scanTick), 2000); // cooldown 2s
+        return;
+      }
+    } catch(e) {}
+  }
+  requestAnimationFrame(scanTick);
+}
+
+function handleScan(data) {
+  const pameris = PAMERIS.find(p => p.id === data);
+  if (!pameris) {
+    showResult(null, 'unknown');
+    return;
+  }
+  lastScannedId = pameris.id;
+  const open    = isWindowOpen();
+  const today   = todayStr();
+  const isToday = currentDate === today;
+  const cur     = attendance[currentDate][pameris.id];
+
+  if (cur === 'hadir') {
+    showResult(pameris, 'sudah');
+    return;
+  }
+
+  // Auto mark hadir jika waktu buka ATAU bukan hari ini (input manual historis)
+  if (open || !isToday) {
+    attendance[currentDate][pameris.id] = 'hadir';
+    saveData(currentDate);
+    showResult(pameris, 'hadir');
+    renderScanStats();
+  } else {
+    showResult(pameris, 'locked');
+  }
+}
+
+function showResult(pameris, type) {
+  const box  = document.getElementById('last-result');
+  const icon = document.getElementById('res-icon');
+  const name = document.getElementById('res-name');
+  const sub  = document.getElementById('res-sub');
+  const msg  = document.getElementById('res-msg');
+  box.style.display = 'flex';
+
+  if (!pameris || type === 'unknown') {
+    box.className = 'result-box danger';
+    icon.className = 'result-icon d'; icon.textContent = '✕';
+    name.textContent = 'QR Tidak Dikenal';
+    sub.textContent  = 'ID tidak terdaftar dalam sistem';
+    msg.textContent  = '';
+    msg.className    = 'result-msg d';
+    return;
+  }
+
+  name.textContent = pameris.nama;
+  sub.textContent  = `Angkatan ${pameris.angkatan} · ${pameris.id}`;
+
+  if (type === 'hadir') {
+    box.className  = 'result-box success';
+    icon.className = 'result-icon s'; icon.textContent = '✓';
+    msg.textContent = '✓ Kehadiran tercatat — ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    msg.className   = 'result-msg s';
+  } else if (type === 'sudah') {
+    box.className  = 'result-box warning';
+    icon.className = 'result-icon w'; icon.textContent = '!';
+    msg.textContent = '⚠ Sudah tercatat sebelumnya';
+    msg.className   = 'result-msg w';
+  } else if (type === 'locked') {
+    box.className  = 'result-box danger';
+    icon.className = 'result-icon d'; icon.textContent = '✕';
+    msg.textContent = '✕ Di luar jam absensi (08.00–09.30 WIB)';
+    msg.className   = 'result-msg d';
+  }
+}
+
+function overrideStatus(status) {
+  if (!lastScannedId) return;
+  attendance[currentDate][lastScannedId] = status;
+  saveData(currentDate);
+  const p = PAMERIS.find(x => x.id === lastScannedId);
+  showResult(p, status === 'hadir' ? 'hadir' : status);
+  renderScanStats();
+}
+
+// ===================== STATS =====================
+function calcStats(date) {
+  let h=0, iz=0, al=0, b=0;
+  PAMERIS.forEach(p => {
+    const s = attendance[date][p.id] || '';
+    if (s==='hadir') h++; else if (s==='izin') iz++; else if (s==='alpha') al++; else b++;
+  });
+  return {h, iz, al, b};
+}
+
+function renderStats(containerId, date) {
+  const {h, iz, al, b} = calcStats(date);
+  document.getElementById(containerId).innerHTML = `
+    <div class="stat-card"><div class="stat-num" style="color:var(--success)">${h}</div><div class="stat-lbl">Hadir</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--warning)">${iz}</div><div class="stat-lbl">Izin</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--danger)">${al}</div><div class="stat-lbl">Alpha</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#9ca3af">${b}</div><div class="stat-lbl">Belum</div></div>`;
+}
+
+function renderScanStats() { renderStats('scan-stats', currentDate); }
+
+// ===================== LIST =====================
+function renderList() {
+  const q    = document.getElementById('list-search').value.toLowerCase();
+  const angs = [29, 30];
+  let html   = '';
+  angs.forEach(ang => {
+    const filtered = PAMERIS.filter(p => p.angkatan === ang && p.nama.toLowerCase().includes(q));
+    if (!filtered.length) return;
+    html += `<div class="section-label">Angkatan ${ang}</div>`;
+    html += '<div class="card" style="margin-bottom:1rem">';
+    filtered.forEach((p, i) => {
+      const s   = attendance[currentDate][p.id] || '';
+      const pill = s === 'hadir' ? '<span class="pill pill-hadir">Hadir</span>'
+                 : s === 'izin'  ? '<span class="pill pill-izin">Izin</span>'
+                 : s === 'alpha' ? '<span class="pill pill-alpha">Alpha</span>'
+                 : '<span class="pill pill-none">–</span>';
+      html += `<div class="prow">
+        <span class="prow-num">${i+1}</span>
+        <div style="flex:1">
+          <div class="prow-name">${p.nama}</div>
+          <div class="prow-id">${p.id}</div>
+        </div>
+        ${pill}
+      </div>`;
+    });
+    html += '</div>';
+  });
+  if (!html) html = '<p style="text-align:center;color:var(--text-muted);padding:2rem;font-size:13px">Tidak ada hasil.</p>';
+  document.getElementById('list-container').innerHTML = html;
+  renderStats('list-stats', currentDate);
+}
+
+function resetDay() {
+  if (!confirm(`Reset semua data absensi ${DATE_FULL[currentDate]}?\n\nTindakan ini tidak bisa dibatalkan.`)) return;
+  PAMERIS.forEach(p => { attendance[currentDate][p.id] = ''; });
+  saveData(currentDate);
+  renderList();
+  renderScanStats();
+}
+
+// ===================== EXPORT EXCEL =====================
+function buildSheet(date) {
+  const rows = [
+    ['No', 'ID', 'Nama', 'Angkatan', 'Status', 'Waktu Absensi']
+  ];
+  PAMERIS.forEach((p, i) => {
+    const s     = attendance[date][p.id] || '';
+    const label = s ? s.charAt(0).toUpperCase() + s.slice(1) : 'Belum Isi';
+    rows.push([i+1, p.id, p.nama, `Angkatan ${p.angkatan}`, label, '08.00 – 09.30 WIB']);
+  });
+  const ws         = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']      = [{wch:4},{wch:12},{wch:36},{wch:13},{wch:12},{wch:20}];
+  return ws;
+}
+
+function exportExcel() {
+  const wb  = XLSX.utils.book_new();
+  const ws  = buildSheet(currentDate);
+  XLSX.utils.book_append_sheet(wb, ws, DATE_FULL[currentDate]);
+  addRekapSheet(wb);
+  XLSX.writeFile(wb, `Absensi_${currentDate}_Pelukis_Cahaya.xlsx`);
+}
+
+function exportExcelAll() {
+  const wb = XLSX.utils.book_new();
+  DATES.forEach(d => {
+    XLSX.utils.book_append_sheet(wb, buildSheet(d), DATE_FULL[d]);
+  });
+  addRekapSheet(wb);
+  XLSX.writeFile(wb, 'Absensi_Pelukis_Cahaya_2026_Semua.xlsx');
+}
+
+function addRekapSheet(wb) {
+  const rows = [['Tanggal','Hadir','Izin','Alpha','Belum Isi','Total Pameris']];
+  DATES.forEach(d => {
+    const {h,iz,al,b} = calcStats(d);
+    rows.push([DATE_FULL[d], h, iz, al, b, PAMERIS.length]);
+  });
+  const ws    = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:18},{wch:8},{wch:8},{wch:8},{wch:12},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Rekap');
+}
+
+// ===================== QR CODES =====================
+function renderQR() {
+  const grid = document.getElementById('qr-grid');
+  if (grid.children.length > 0) return; // already rendered
+  grid.innerHTML = '';
+  PAMERIS.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'qr-card';
+    const canvas = document.createElement('canvas');
+    card.appendChild(canvas);
+    const nameEl = document.createElement('div');
+    nameEl.className = 'qr-name';
+    nameEl.textContent = p.nama;
+    const angEl = document.createElement('div');
+    angEl.className = 'qr-ang';
+    angEl.textContent = `Angkatan ${p.angkatan}`;
+    const idEl = document.createElement('div');
+    idEl.className = 'qr-id';
+    idEl.textContent = p.id;
+    card.appendChild(nameEl);
+    card.appendChild(angEl);
+    card.appendChild(idEl);
+    grid.appendChild(card);
+    QRCode.toCanvas(canvas, p.id, {
+      width: 130, margin: 1,
+      color: { dark: '#1a1a2e', light: '#ffffff' }
+    });
+  });
+}
+
+function downloadAllQR() {
+  // Download QR sebagai PNG per orang tidak didukung tanpa library zip
+  // Alternatif: arahkan ke print
+  alert('Untuk menyimpan semua QR:\n\n1. Klik "Cetak Semua QR"\n2. Pilih "Save as PDF" di dialog print\n\nAtau screenshot masing-masing QR card.');
+}
+
+// ===================== INIT =====================
+function init() {
+  loadData();
+  buildChips('scan-date-chips', 'function(){renderScanStats();updateLockNotice()}');
+  buildChips('list-date-chips', 'renderList');
+  updateBadge();
+  renderScanStats();
+  setInterval(updateBadge, 30000);
+}
+
+// Fix chip onclick — pakai string fn name
+document.addEventListener('DOMContentLoaded', () => {
+  // Rebuild chips with proper callbacks after DOM ready
+  const scanChips = document.getElementById('scan-date-chips');
+  const listChips = document.getElementById('list-date-chips');
+
+  function makeChips(container, cb) {
+    container.innerHTML = '';
+    DATES.forEach((d, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'chip' + (i===0?' active':'');
+      btn.textContent = DATE_LABEL[d];
+      btn.onclick = () => {
+        container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        currentDate = d;
+        cb();
+      };
+      container.appendChild(btn);
+    });
+  }
+
+  loadData();
+  makeChips(scanChips, () => { renderScanStats(); updateLockNotice(); });
+  makeChips(listChips, () => renderList());
+  updateBadge();
+  renderScanStats();
+  setInterval(updateBadge, 30000);
+});
+</script>
+</body>
+</html>
