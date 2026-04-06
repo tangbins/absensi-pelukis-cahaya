@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Absensi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      color: white;
+      padding-top: 50px;
+    }
+    .box {
+      background: white;
+      color: black;
+      padding: 20px;
+      margin: 20px;
+      border-radius: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>📷 Absensi Sedang Diproses...</h2>
+
+  <div class="box" id="result">Loading...</div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const nama = params.get("nama");
+    const angkatan = params.get("angkatan");
+
+    const url = "https://script.google.com/macros/s/AKfycbz-H4mY4prFt04gdV_yacrbWs8JtsJYFBJ3el3n6EDBPmgx2oMvlj7IVpeULwjQJcOA/exec";
+
+    fetch(`${url}?nama=${nama}&angkatan=${angkatan}`)
+      .then(() => {
+        document.getElementById("result").innerHTML = `
+          <h2>✅ Absensi Berhasil!</h2>
+          <p><b>Nama:</b> ${nama}</p>
+          <p><b>Angkatan:</b> ${angkatan}</p>
+        `;
+      });
+  </script>
+
+</body>
+</html>
